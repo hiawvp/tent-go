@@ -7,25 +7,25 @@ Writing the backend in Go but I'm not really committed to this right now, just p
 
 ## For future me
 
-`cd tento`
+`$ cd tento`
 
 - Live reload with [Air](https://github.com/cosmtrek/air) 
 
-`air`
+`$ air`
 
 http://localhost:5150/api/v1/
 
 - Run a single test, use `gotest` for colors
  
-`./gotest ./test/api -run TestPostProduct -v`
+`$ ./gotest ./test/api -run TestPostProduct -v`
 
 - Run all the tests
 
-`./gotest ./test/... -v  `
+`$ ./gotest ./test/... -v  `
 
 - test with coverage
 
-`go test -cover -coverpkg "./pkg/..." "./test/..." `
+`$ go test -cover -coverpkg "./pkg/..." "./test/..." `
 
 ## Resources
 
