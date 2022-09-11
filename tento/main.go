@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"tento/pkg/database"
-	"tento/pkg/router"
-	"tento/pkg/utils"
+	"tento/internal/database"
+	"tento/internal/router"
+	"tento/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"

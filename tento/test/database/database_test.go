@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"tento/pkg/database"
-	"tento/pkg/models"
-	"tento/pkg/utils"
+	"tento/internal/database"
+	"tento/internal/models"
+	"tento/internal/utils"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
