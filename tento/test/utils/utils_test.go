@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"tento/pkg/models"
-	"tento/pkg/utils"
+	"tento/internal/models"
+	"tento/internal/utils"
 	"testing"
 )
 
