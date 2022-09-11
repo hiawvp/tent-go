@@ -3,7 +3,7 @@ Rewriting info282 project because why not
 
 ## About
 
-Writing the backend in Go but I'm not really committed to this right now, just playing around with testing and trying out Vim plugins.
+Writing the backend in Go but I'm not really committed to this right now, just playing around with unit tests and trying out Vim plugins.
 
 ## For future me
 
@@ -31,8 +31,10 @@ http://localhost:5150/api/v1/
 
 https://gorm.io/docs/index.html
 
-https://github.com/go-playground/validator
-
 https://go.dev/doc/tutorial/web-service-gin
 
 https://github.com/golang-standards/project-layout
+
+https://github.com/go-playground/validator (TODO)
+
+https://github.com/go-swagger/go-swagger (TODO)
