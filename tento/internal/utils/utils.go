@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
+	"strconv"
 	"strings"
 	"tento/internal/utils/color"
 )
@@ -16,21 +18,38 @@ type tentoLogger struct {
 	level       string
 }
 
+func shortenFnPath(fn string) string {
+	split := strings.Split(fn, "/")
+	return strings.Join(split[len(split)-2:], "/")
+}
+
+func getCallLocation(v ...interface{}) string {
+	pc, fn, line, _ := runtime.Caller(2)
+	funcName := strings.Split(runtime.FuncForPC(pc).Name(), ".")[1]
+	return fmt.Sprintf("%s() [%s:%d]", funcName, shortenFnPath(fn), line)
+}
+
 func (logger tentoLogger) Info(v ...interface{}) {
 	if strings.ToLower(logger.level) == "info" {
-		logger.InfoLogger.Println(v...)
+		prefix := getCallLocation()
+		a := append([]interface{}{prefix}, v...)
+		logger.InfoLogger.Println(a...)
 	}
 }
 
 func (logger tentoLogger) Warn(v ...interface{}) {
 	if strings.ToLower(logger.level) != "error" && strings.ToLower(logger.level) != "none" {
-		logger.WarnLogger.Println(v...)
+		prefix := getCallLocation()
+		a := append([]interface{}{prefix}, v...)
+		logger.WarnLogger.Println(a...)
 	}
 }
 
 func (logger tentoLogger) Error(v ...interface{}) {
 	if strings.ToLower(logger.level) != "none" {
-		logger.ErrorLogger.Println(v...)
+		prefix := getCallLocation()
+		a := append([]interface{}{prefix}, v...)
+		logger.ErrorLogger.Println(a...)
 	}
 }
 
@@ -69,12 +88,12 @@ func SetupLogger() {
 	TentoLogger.InfoLogger = log.New(
 		os.Stdout,
 		color.Cyan+"[tento-INFO]: "+color.Reset,
-		log.Ldate|log.Ltime|log.Lshortfile)
+		log.Ldate|log.Ltime)
 
 	TentoLogger.WarnLogger = log.New(
 		os.Stdout,
 		color.Yellow+"[tento-WARN]: "+color.Reset,
-		log.Ldate|log.Ltime|log.Lshortfile)
+		log.Ldate|log.Ltime)
 
 	TentoLogger.ErrorLogger = log.New(
 		os.Stdout,
@@ -87,7 +106,7 @@ func SetupLogger() {
 		TentoLogger.Warn("Ready")
 		TentoLogger.Error("Ready")
 	} else {
-		TentoLogger.level = "ERROR"
+		TentoLogger.level = "INFO"
 	}
 }
 
@@ -106,4 +125,16 @@ func Getenv(key, fallback string) string {
 		return fallback
 	}
 	return value
+}
+
+func ParseIntDefault(number string, defaulValue int) int {
+	val, err := strconv.ParseInt(number, 10, 64)
+	if err != nil {
+		TentoLogger.Warn(
+			fmt.Sprintf("ParseIntDefault value : '%v' raised error\n%v",
+				number,
+				err.Error()))
+		return defaulValue
+	}
+	return int(val)
 }
