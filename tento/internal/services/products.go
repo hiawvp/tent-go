@@ -23,26 +23,44 @@ func CreateProduct(prod models.Product) (models.Product, error) {
 	return prod, result.Error
 }
 
-func FindProducts() []models.Product {
+func FindProducts(page, limit int, search string) ([]models.Product, error) {
+	utils.TentoLogger.Info("FindProducts")
 	// TODO: paginate resaults
 	var products []models.Product
-	result := database.DB.Find(&products)
+	result := database.DB.
+		Where("description LIKE ?", fmt.Sprintf("%%%v%%", search)).
+		Limit(limit).
+		Offset(limit * page).
+		Find(&products)
 	if result.Error != nil {
 		utils.TentoLogger.Error("Error!! ", result.Error.Error())
 	}
 	utils.TentoLogger.Info(fmt.Sprintf("Found %v products", len(products)))
-	return products
+	return products, result.Error
 
 }
 
 func FindProductById(id int64) (models.Product, error) {
+	utils.TentoLogger.Info("FindProductById")
 	// TODO: paginate resaults
 	var product models.Product
 	result := database.DB.First(&product, id)
 	if result.Error != nil {
 		utils.TentoLogger.Error("Error!! ", result.Error.Error())
 	}
-	utils.TentoLogger.Info(fmt.Sprintf("Found product", product.Barcode))
+	utils.TentoLogger.Info("Found product", product.Barcode)
+	return product, result.Error
+}
+
+func FindProductByBarcode(barcode string) (models.Product, error) {
+	utils.TentoLogger.Info("FindProductByBarcode")
+	var product models.Product
+	result := database.DB.Where("barcode = ?", barcode).First(&product)
+	if result.Error != nil {
+		utils.TentoLogger.Error("Error!! ", result.Error.Error())
+	} else {
+		utils.TentoLogger.Info("Found product", product.Barcode)
+	}
 	return product, result.Error
 
 }

@@ -14,17 +14,44 @@ import (
 	"gorm.io/gorm"
 )
 
+// TODO: paginate resaults
 func GetProducts(c *gin.Context) {
-	utils.TentoLogger.Info("GetProducts")
-	// TODO: paginate resaults
-	//str_id := c.Param("id")
-	//str_id := c.Param("id")
-	products := services.FindProducts()
+	utils.TentoLogger.Info("called")
+	if barcode := c.Query("barcode"); len(barcode) > 0 {
+		getProductByBarcode(c, barcode)
+	} else {
+		getFilteredProducts(c)
+	}
+}
+
+func getProductByBarcode(c *gin.Context, barcode string) {
+	utils.TentoLogger.Info("barcode: ", barcode)
+	product, err := services.FindProductByBarcode(barcode)
+	if err != nil {
+		utils.TentoLogger.Error("barcode error: ", err.Error())
+		//errResponse := NewCustomErrorResponse(err, "barcode", barcode)
+		//c.JSON(errResponse.httpStatusCode, errResponse.body)
+		c.JSON(http.StatusNotFound, gin.H{"code": "ITEM_NOT_FOUND", "message": "xddd"})
+	} else {
+		c.JSON(http.StatusOK, product)
+	}
+}
+
+func getFilteredProducts(c *gin.Context) {
+	limit := utils.ParseIntDefault(c.Query("limit"), 10)
+	page := utils.ParseIntDefault(c.Query("page"), 0)
+	search := c.Query("search")
+	utils.TentoLogger.Info("Queryargs: ", limit, page, search)
+	products, _ := services.FindProducts(page, limit, search)
+	if len(products) == 0 {
+		utils.TentoLogger.Warn("found 0 products")
+	}
 	c.JSON(http.StatusOK, products)
 }
 
 func GetProduct(c *gin.Context) {
-	utils.TentoLogger.Info("GetProduct by id")
+	//utils.TentoLogger.Info("GetProduct by id")
+	//utils.TentoLogger.Error("GetProduct by id")
 
 	//TODO: extract url param validation to func
 	str_id := c.Param("id")

@@ -28,10 +28,10 @@ func init() {
 	fmt.Println("Calling init at endpoint_test.go")
 	os.Setenv("GO_ENV", "testing")
 	utils.SetupLogger()
-	utils.TentoLogger.SetLogLevel("INFO")
 	database.Setup()
 	gin.SetMode(gin.ReleaseMode)
 	r = router.Create()
+	utils.TentoLogger.SetLogLevel("INFO")
 	//database.Setup()
 }
 
@@ -97,17 +97,36 @@ func TestGetProductById(t *testing.T) {
 	return
 }
 
-func TestPostProduct(t *testing.T) {
+func TestGetProductByBarcode(t *testing.T) {
+	if test_prod_id == 0 || test_prod.ID == 0 {
+		t.FailNow()
+	}
+	testUrl := apiPrefix + "/products?barcode=" + test_prod.Barcode
+	req, _ := http.NewRequest("GET", testUrl, nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
 
+	assert.Equal(t, http.StatusOK, w.Code)
+	responseData, _ := ioutil.ReadAll(w.Body)
+	var product models.Product
+	json.Unmarshal(responseData, &product)
+	if assert.NotEmpty(t, product.ID, "ProdByBarcode should not have ID=0") {
+		fmt.Println("Found product :", product.Description)
+		assert.Equal(t, test_prod, product)
+	}
+	return
+}
+
+func TestPostProduct(t *testing.T) {
 	testUrl := apiPrefix + "/products"
-	product := models.Product{
+	post_product := models.Product{
 		Barcode:     "NANACHI5150",
 		BuyPrice:    300,
 		SellPrice:   500,
 		Stock:       10,
 		Description: "Nanachi cool product",
 	}
-	body, err := json.Marshal(product)
+	body, err := json.Marshal(post_product)
 	if err != nil {
 		fmt.Println("Error! ", err.Error())
 		t.FailNow()
@@ -122,12 +141,12 @@ func TestPostProduct(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	responseData, _ := ioutil.ReadAll(w.Body)
 	json.Unmarshal(responseData, &responseProduct)
-	if assert.NotEmpty(t, product) {
-		fmt.Println("Found product :", responseProduct.Description)
+	if assert.NotEmpty(t, post_product) {
+		fmt.Println("Found post_product :", responseProduct.Description)
 	}
 
-	assert.Equal(t, product.BuyPrice, responseProduct.BuyPrice)
-	assert.Equal(t, product.SellPrice, responseProduct.SellPrice)
-	assert.NotEqual(t, product.ID, responseProduct.ID)
+	assert.Equal(t, post_product.BuyPrice, responseProduct.BuyPrice)
+	assert.Equal(t, post_product.SellPrice, responseProduct.SellPrice)
+	assert.NotEqual(t, post_product.ID, responseProduct.ID)
 	return
 }
