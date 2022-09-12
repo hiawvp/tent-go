@@ -31,6 +31,10 @@ func Create() *gin.Engine {
 		v1.GET("/products", handlers.GetProducts)
 		v1.POST("/products", handlers.PostProduct)
 
+		v1.GET("/sales/:id", handlers.GetSale)
+		v1.GET("/sales", handlers.GetSales)
+		v1.POST("/sales", handlers.PostSale)
+
 	}
 	return router
 }

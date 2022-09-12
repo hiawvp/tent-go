@@ -141,12 +141,34 @@ func TestPostProduct(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	responseData, _ := ioutil.ReadAll(w.Body)
 	json.Unmarshal(responseData, &responseProduct)
-	if assert.NotEmpty(t, post_product) {
+	if assert.NotEmpty(t, responseProduct) {
 		fmt.Println("Found post_product :", responseProduct.Description)
 	}
 
 	assert.Equal(t, post_product.BuyPrice, responseProduct.BuyPrice)
 	assert.Equal(t, post_product.SellPrice, responseProduct.SellPrice)
 	assert.NotEqual(t, post_product.ID, responseProduct.ID)
+	return
+}
+
+func TestStartNewSale(t *testing.T) {
+	barcode := "NANACHI5150"
+	testUrl := apiPrefix + "/sales" + "?barcode=" + barcode
+	req, _ := http.NewRequest("POST", testUrl, nil)
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	var responseSale models.Sale
+	assert.Equal(t, http.StatusOK, w.Code)
+	responseData, _ := ioutil.ReadAll(w.Body)
+	json.Unmarshal(responseData, &responseSale)
+	if assert.NotEmpty(t, responseSale) {
+		fmt.Println("Found post_sale :", responseSale)
+	}
+
+	//assert.Equal(t, post_product.BuyPrice, responseProduct.BuyPrice)
+	//assert.Equal(t, post_product.SellPrice, responseProduct.SellPrice)
+	//assert.NotEqual(t, post_product.ID, responseProduct.ID)
 	return
 }

@@ -38,6 +38,9 @@ func Setup() {
 func migrate() {
 	utils.TentoLogger.Info("Migrating database ...")
 	DB.AutoMigrate(&models.Product{})
+	DB.AutoMigrate(&models.SaleProduct{})
+	DB.AutoMigrate(&models.Sale{})
+	DB.AutoMigrate(&models.User{})
 }
 
 func populate() {

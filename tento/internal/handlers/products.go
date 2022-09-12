@@ -14,7 +14,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// TODO: paginate resaults
 func GetProducts(c *gin.Context) {
 	utils.TentoLogger.Info("called")
 	if barcode := c.Query("barcode"); len(barcode) > 0 {
@@ -22,6 +21,41 @@ func GetProducts(c *gin.Context) {
 	} else {
 		getFilteredProducts(c)
 	}
+}
+
+func GetProduct(c *gin.Context) {
+	//TODO: extract url param validation to func
+	str_id := c.Param("id")
+	id, err := strconv.ParseInt(str_id, 10, 64)
+	if err != nil {
+		errHint := fmt.Sprintf("Invalid ID : %v", str_id)
+		abortRequest(c, http.StatusBadRequest, "BAD_REQUEST", errHint)
+	} else {
+		getProductById(c, id)
+	}
+}
+
+func PostProduct(c *gin.Context) {
+	utils.TentoLogger.Info("")
+	var product models.Product
+	// TODO: fields validator
+	err := c.ShouldBindJSON(&product)
+	if err != nil {
+		utils.TentoLogger.Error("Error binding body json ", err.Error())
+		abortRequest(c, http.StatusBadRequest, "BINDING_ERROR", err.Error())
+		return
+	}
+	prod, err := services.CreateProduct(product)
+	if err != nil {
+		if sqlite3Err := err.(sqlite3.Error); errors.Is(err, sqlite3Err) {
+			utils.TentoLogger.Error("sqlite3Err: ", sqlite3Err.Code)
+		}
+		utils.TentoLogger.Error("Could not create product. Error: ", err.Error())
+		abortRequest(c, http.StatusNotFound, "POST_ERROR", err.Error())
+		return
+	}
+	utils.TentoLogger.Info("Created Product ", prod)
+	c.JSON(http.StatusOK, prod)
 }
 
 func getProductByBarcode(c *gin.Context, barcode string) {
@@ -49,58 +83,12 @@ func getFilteredProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, products)
 }
 
-func GetProduct(c *gin.Context) {
-	//utils.TentoLogger.Info("GetProduct by id")
-	//utils.TentoLogger.Error("GetProduct by id")
-
-	//TODO: extract url param validation to func
-	str_id := c.Param("id")
-	id, err := strconv.ParseInt(str_id, 10, 64)
-	if err != nil {
-		c.JSON(
-			400,
-			gin.H{
-				"code":    "BAD_REQUEST",
-				"message": fmt.Sprintf("Invalid ID : %v", str_id)})
-		return
-	}
-
+func getProductById(c *gin.Context, id int64) {
 	product, err := services.FindProductById(id)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		c.JSON(
-			404,
-			gin.H{
-				"code":    "ITEM_NOT_FOUND",
-				"message": fmt.Sprintf("No Product with ID : %v", str_id)})
-		return
+		errHint := fmt.Sprintf("No Product with ID : %v", id)
+		abortRequest(c, http.StatusNotFound, "NOT_FOUND", errHint)
+	} else {
+		c.JSON(http.StatusOK, product)
 	}
-	c.JSON(http.StatusOK, product)
-}
-
-func PostProduct(c *gin.Context) {
-	utils.TentoLogger.Info("PostProduct ")
-
-	var product models.Product
-	// TODO: fields validator
-	err := c.ShouldBindJSON(&product)
-	if err != nil {
-		utils.TentoLogger.Error("Error binding body json ", err.Error())
-		c.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-	prod, err := services.CreateProduct(product)
-	if err != nil {
-		if sqlite3Err := err.(sqlite3.Error); errors.Is(err, sqlite3Err) {
-			fmt.Println("Kek: ", sqlite3Err.Code)
-		}
-		utils.TentoLogger.Error("Could not create product. Error: ", err.Error())
-		c.JSON(
-			404,
-			gin.H{
-				"code":    "COULD_NOT_CREATE",
-				"message": err.Error()})
-		return
-	}
-	utils.TentoLogger.Info("Crated Product ", prod)
-	c.JSON(http.StatusOK, prod)
 }
